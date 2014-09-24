@@ -68,9 +68,9 @@ public class MainActivity extends Activity {
     private TextView mTv_MD5SUM;
     private CheckBox mCbUpdateUboot;
 
-    private String mVersionURL = "http://dn.odroid.com/";
+    private String mVersionURL = "http://oph.mdrjr.net/voodik/";
     private String mProductName;
-    private static final String DOWNLOAD_SITE = "http://dn.odroid.com/[product]/update.zip";
+    private static final String DOWNLOAD_SITE = "http://oph.mdrjr.net/voodik/[product]/update.zip";
     private static final String INFORM_NODE = "/sys/bus/platform/drivers/odroid-sysfs/odroid_sysfs.16/inform0";
     
     private Handler mHandler;
@@ -612,7 +612,7 @@ public class MainActivity extends Activity {
             .setMessage("Not found internet connection!")
             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                public void onClick(DialogInterface dialog, int which) { 
-                   finish();
+                   //finish();
                }
             })
             .setIcon(android.R.drawable.ic_dialog_alert)
