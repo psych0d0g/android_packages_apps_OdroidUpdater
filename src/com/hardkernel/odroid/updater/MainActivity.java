@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
         
         mProductName = getProductName();
         if (mProductName.equals("ODROID-XU/"))
-            mVersionURL += "ODROID-XU/version";
+            mVersionURL += "ODROID-XU/CM-12/version";
         else
             mVersionURL += "4412/Android/version";
         
