@@ -606,7 +606,7 @@ public class MainActivity extends Activity {
             .setMessage("Not found internet connection!")
             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                public void onClick(DialogInterface dialog, int which) { 
-                   finish();
+//                   finish();
                }
             })
             .setIcon(android.R.drawable.ic_dialog_alert)
@@ -814,12 +814,15 @@ public class MainActivity extends Activity {
                     }
 
                     FileOutputStream fout = new FileOutputStream(ToPath + filename);
+                    BufferedOutputStream bufout = new BufferedOutputStream(fout);
+                    count = 0;
 
                     // cteni zipu a zapis
                     while ((count = zis.read(buffer)) != -1) {
-                        fout.write(buffer, 0, count);             
+						bufout.write(buffer, 0, count);
                     }
 
+                    bufout.close();
                     fout.close();               
                     zis.closeEntry();
                 }
