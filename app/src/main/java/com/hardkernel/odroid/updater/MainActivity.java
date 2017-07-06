@@ -46,8 +46,10 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private ProgressDialog mProgressDialog = null;
+    private Runtime mRuntime;
     private Process mProcess;
-    private String mUnzipLocation = Environment.getExternalStorageDirectory() + "/";
+    private String mUnzipLocation = "/storage/0000-3333/";
+    private int mDatapartsize = 0;
     private String mZipFile = Environment.getExternalStorageDirectory() + "/update.zip";
     private String mZipFileMd5sum = mZipFile + ".md5sum";
     private String mUpdateDate;
@@ -66,11 +68,12 @@ public class MainActivity extends Activity {
     private TextView mTv_MD5SUMResult;
     private TextView mTv_MD5SUM;
     private CheckBox mCbUpdateUboot;
+    private CheckBox mCbFormatData;
 
-    private String mVersionURL = "http://oph.mdrjr.net/voodik/";
+    private String mVersionURL = "https://oph.mdrjr.net/voodik/";
     private String mProductName;
-    private static final String DOWNLOAD_SITE = "http://oph.mdrjr.net/voodik/[product]/update.zip";
-    private static final String INFORM_NODE = "/sys/bus/platform/drivers/odroid-sysfs/odroid_sysfs.15/inform0";
+    private static final String DOWNLOAD_SITE = "https://oph.mdrjr.net/voodik/[product]/update.zip";
+    private static String INFORM_NODE = "/sys/devices/odroid_sysfs.";
 
     private Handler mHandler;
 
@@ -93,7 +96,7 @@ public class MainActivity extends Activity {
         if (mProductName.equals("ODROID-XU/"))
             mVersionURL += "ODROID-XU/version";
         else if (mProductName.equals("ODROID-XU3/"))
-            mVersionURL += "5422/ODROID-XU3/Android/CM-12.1/version";
+            mVersionURL += "5422/ODROID-XU3/Android/CM-14.1/version";
         else
             mVersionURL += "4412/Android/version";
 
@@ -188,6 +191,9 @@ public class MainActivity extends Activity {
         mCbUpdateUboot = (CheckBox)findViewById(R.id.cb_update_uboot);
         mCbUpdateUboot.setEnabled(false);
 
+        mCbFormatData = (CheckBox)findViewById(R.id.cb_userdata_format);
+        mCbFormatData.setEnabled(false);
+
         mBtnUpdate = (Button)findViewById(R.id.btn_Update);
         mBtnUpdate.setEnabled(false);
         mBtnUpdate.setOnClickListener(new OnClickListener() {
@@ -201,55 +207,66 @@ public class MainActivity extends Activity {
                 CheckBox cb_clear_uboot = (CheckBox)findViewById(R.id.cb_clear_uboot_env);
                 CheckBox cb_update_uboot = (CheckBox)findViewById(R.id.cb_update_uboot);
                 FileOutputStream fos;
-                try {
-                    fos = new FileOutputStream(INFORM_NODE);
-                    int value = 0;
-                    if (cb_userdata_format.isChecked())
-                        value |= 1;
-                    if (cb_fat_format.isChecked())
-                        value |= 2;
-                    if (cb_clear_uboot.isChecked())
-                        value |= 4;
-                    if (cb_update_uboot.isChecked())
-                        value |= 8;
+                int i = 0;
+                while (i < 100) {
+                    String inform_node = INFORM_NODE + i + "/inform0";
+                    i++;
+                    if (!new File(inform_node).isFile())
+                        continue;
 
-                    byte[] bytes = new byte[4];
-                    bytes[0] = '0';
-                    bytes[1] = 'x';
+                    try {
+                        Log.d(TAG, inform_node);
+                        fos = new FileOutputStream(inform_node);
+                        int value = 0;
+                        if (cb_userdata_format.isChecked())
+                            value |= 1;
+                        if (cb_fat_format.isChecked())
+                            value |= 2;
+                        if (cb_clear_uboot.isChecked())
+                            value |= 4;
+                        if (cb_update_uboot.isChecked())
+                            value |= 8;
 
-                    if (value == 0xa)
-                        bytes[2] = 'a';
-                    else if(value == 0xb)
-                        bytes[2] = 'b';
-                    else if (value == 0xc)
-                        bytes[2] = 'c';
-                    else if (value == 0xd)
-                        bytes[2] = 'd';
-                    else if (value == 0xe)
-                        bytes[2] = 'e';
-                    else if (value == 0xf)
-                        bytes[2] = 'f';
-                    else
-                        bytes[2] = (byte)('0' + value);
-                    bytes[3] = '\n';
-                    fos.write(bytes);
-                    fos.close();
-                } catch (FileNotFoundException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                    return;
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    return;
+                        byte[] bytes = new byte[4];
+                        bytes[0] = '0';
+                        bytes[1] = 'x';
+
+                        if (value == 0xa)
+                            bytes[2] = 'a';
+                        else if(value == 0xb)
+                            bytes[2] = 'b';
+                        else if (value == 0xc)
+                            bytes[2] = 'c';
+                        else if (value == 0xd)
+                            bytes[2] = 'd';
+                        else if (value == 0xe)
+                            bytes[2] = 'e';
+                        else if (value == 0xf)
+                            bytes[2] = 'f';
+                        else
+                            bytes[2] = (byte)('0' + value);
+                        bytes[3] = '\n';
+                        fos.write(bytes);
+                        fos.close();
+                        break;
+                    } catch (FileNotFoundException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                        continue;
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                        continue;
+                    }
                 }
 
                 try {
-                    OutputStream os = mProcess.getOutputStream();
+//                    OutputStream os = mProcess.getOutputStream();
                     String cmd = "/system/bin/reboot update";
-                    os.write(cmd.getBytes());
-                    os.flush();
-                    os.close();
+//                    os.write(cmd.getBytes());
+//                    os.flush();
+//                    os.close();
+                    mProcess = mRuntime.exec(cmd);
                     mProcess.waitFor();
                 } catch ( Exception e) {
                     Log.d(TAG, "rooting X");
@@ -565,7 +582,8 @@ public class MainActivity extends Activity {
         super.onResume();
 
         try {
-            mProcess = Runtime.getRuntime().exec("su");
+//            mProcess = Runtime.getRuntime().exec("su");
+            mRuntime = Runtime.getRuntime();
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -598,13 +616,23 @@ public class MainActivity extends Activity {
             .show();
         }
 
-        StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
-        double sdAvailSize = (double)stat.getAvailableBlocks()
-                           * (double)stat.getBlockSize();
-        if (sdAvailSize < 700000000) {
+        File update_folder = new File(mUnzipLocation + "update");
+        if (update_folder.exists()) {
+            String[] myFiles;
+
+            myFiles = update_folder.list();
+            for (int i = 0; i < myFiles.length; i++) {
+                File myFile = new File(update_folder, myFiles[i]);
+                myFile.delete();
+            }
+        }
+
+        StatFs stat = new StatFs("/storage/0000-3333");
+        long sdAvailSize = stat.getFreeBytes();
+        if (sdAvailSize < 996147200) {
             new AlertDialog.Builder(this)
             .setTitle("Check free space")
-            .setMessage("Insufficient free space!\nAbout 700M free space is required")
+            .setMessage("Insufficient free space!\nAbout 950M free space is required")
             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                public void onClick(DialogInterface dialog, int which) {
                    finish();
@@ -613,6 +641,50 @@ public class MainActivity extends Activity {
             .setIcon(android.R.drawable.ic_dialog_alert)
             .show();
         }
+        StatFs stat1 = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        long intAvailSize = stat1.getFreeBytes();
+        if (intAvailSize < 1258291200) {
+            new AlertDialog.Builder(this)
+            .setTitle("Check free space")
+            .setMessage("Insufficient free space!\nAbout 1.5G free space is required")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
+
+        StatFs stat2 = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        long datapartsize = stat2.getTotalBytes();
+        if (datapartsize > 3221225472L && datapartsize < 5368709120L ) {
+            mDatapartsize = 8;
+        } else if (datapartsize > 11811160064L && datapartsize < 13958643712L ) {
+            mDatapartsize = 16;
+        } else if (datapartsize > 26843545600L && datapartsize < 28991029248L ) {
+            mDatapartsize = 32;
+        } else if (datapartsize > 57982058496L && datapartsize < 69793218560L) {
+            mDatapartsize = 64;
+        } else if (datapartsize > 69793218560L) {
+            mDatapartsize = 128;
+        }
+        if (mDatapartsize > 0) {
+            mCbFormatData.setEnabled(true);
+        } else {
+            mCbFormatData.setEnabled(false);
+            new AlertDialog.Builder(this)
+                    .setTitle("Data partition size")
+                    .setMessage("SD Card or EMMC size not detected!\nCannot format userdata")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+//                            finish();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
+
     }
 
     class DownloadMapAsync extends AsyncTask<String, Integer, String> {
@@ -686,6 +758,18 @@ public class MainActivity extends Activity {
         new UnZipTask().execute(mZipFile, mUnzipLocation);
     }
 
+    public void renamedata(){
+        if (mDatapartsize > 0) {
+            File cuserdata_file = new File(mUnzipLocation + "update/userdata_"+ mDatapartsize +".img");
+            if (cuserdata_file.exists()) {
+                File userdata_file = new File(mUnzipLocation + "update/userdata.img");
+                cuserdata_file.renameTo(userdata_file);
+            } else {
+                mCbFormatData.setEnabled(false);
+            }
+        }
+    }
+
     private class UnZipTask extends AsyncTask<String, Void, Boolean> {
         @SuppressWarnings("rawtypes")
         @Override
@@ -699,6 +783,8 @@ public class MainActivity extends Activity {
                     File myFile = new File(update_folder, myFiles[i]);
                     myFile.delete();
                 }
+            } else {
+                createDir(update_folder);
             }
 
             String filePath = params[0];
@@ -708,15 +794,21 @@ public class MainActivity extends Activity {
                 ZipFile zipfile = new ZipFile(archive);
                 for (Enumeration e = zipfile.entries(); e.hasMoreElements();) {
                     ZipEntry entry = (ZipEntry) e.nextElement();
+                    if (entry.getName().contains("update/userdata_")) {
+                        if (!entry.getName().equals("update/userdata_" + mDatapartsize + ".img")) {
+                            continue;
+                        }
+                    }
                     unzipEntry(zipfile, entry, destinationPath);
                 }
                 UnZipUtil d = new UnZipUtil();
                 d.unZip(mZipFile, mUnzipLocation);
-
+                zipfile.close();
                 } catch (Exception e) {
 
                 return false;
             }
+            renamedata();
             return true;
         }
 
@@ -783,6 +875,12 @@ public class MainActivity extends Activity {
                        File fmd = new File(ToPath + filename);
                        fmd.mkdirs();
                        continue;
+                    }
+
+                    if (filename.contains("update/userdata_")) {
+                        if (!filename.equals("update/userdata_" + mDatapartsize + ".img")) {
+                            continue;
+                        }
                     }
 
                     FileOutputStream fout = new FileOutputStream(ToPath + filename);
