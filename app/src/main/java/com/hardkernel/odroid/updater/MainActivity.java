@@ -70,9 +70,9 @@ public class MainActivity extends Activity {
     private CheckBox mCbUpdateUboot;
     private CheckBox mCbFormatData;
 
-    private String mVersionURL = "https://oph.mdrjr.net/voodik/";
+    private String mVersionURL = "https://build.crystalnet.org/odroid/";
     private String mProductName;
-    private static final String DOWNLOAD_SITE = "https://oph.mdrjr.net/voodik/[product]/update.zip";
+    private static final String DOWNLOAD_SITE = "https://build.crystalnet.org/odroid/[product]/update.zip";
     private static String INFORM_NODE = "/sys/devices/odroid_sysfs.";
 
     private Handler mHandler;
@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
         if (mProductName.equals("ODROID-XU/"))
             mVersionURL += "ODROID-XU/version";
         else if (mProductName.equals("ODROID-XU3/"))
-            mVersionURL += "5422/ODROID-XU3/Android/lineage-14.1/version";
+            mVersionURL += "odroid/version";
         else
             mVersionURL += "4412/Android/version";
 
