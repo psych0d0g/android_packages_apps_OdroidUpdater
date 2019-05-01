@@ -68,9 +68,9 @@ public class MainActivity extends Activity {
     private TextView mTv_MD5SUM;
     private CheckBox mCbUpdateUboot;
 
-    private String mVersionURL = "http://oph.mdrjr.net/voodik/";
+    private String mVersionURL = "https://build.crystalnet.org/odroid/";
     private String mProductName;
-    private static final String DOWNLOAD_SITE = "http://oph.mdrjr.net/voodik/[product]/update.zip";
+    private static final String DOWNLOAD_SITE = "https://build.crystalnet.org/odroid/[product]/update.zip";
     private static final String INFORM_NODE = "/sys/devices/platform/odroid-sysfs/inform0";
     
     private Handler mHandler;
@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
         
         mProductName = getProductName();
         if (mProductName.equals("ODROID-XU/"))
-            mVersionURL += "ODROID-XU/version";
+            mVersionURL += "/version";
         else
             mVersionURL += "4412/Android/version";
         
@@ -356,8 +356,7 @@ public class MainActivity extends Activity {
 	                        do {
 	                            url = reader.readLine();
 	                            if (url != null)
-	                                if (url.contains(mProductName))
-	                                    break;
+	                                break;
 	                        } while (url != null);
 	                        reader.close();
 	                        if (url == null) {
